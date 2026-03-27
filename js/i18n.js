@@ -107,6 +107,7 @@ const translations = {
     yaxis_headCircumference: "Head Circumference (cm)",
     yaxis_waistCircumference: "Waist Circumference (cm)",
     months_label: "mo",
+    charts_reset_zoom: "↺ Reset zoom",
   },
 
   es: {
@@ -217,6 +218,7 @@ const translations = {
     yaxis_headCircumference: "Perímetro Cefálico (cm)",
     yaxis_waistCircumference: "Perímetro de Cintura (cm)",
     months_label: "m",
+    charts_reset_zoom: "↺ Ver todo",
   }
 };
 

@@ -158,11 +158,26 @@ export function renderChart(type, sex, measurements) {
   };
 
   const whoDatasets = buildWhoDatasets(chartData);
+  const xAbsMax = chartData[chartData.length - 1].month; // 60
 
-  // Y axis range: WHO min/max + 10%
-  const allVals = chartData.flatMap(d => [d.SD3n, d.SD3]);
+  // X axis: auto-scale to data range; show ~6-month window past last point
+  let xMin = 0;
+  let xMax = xAbsMax;
+  if (babyPoints.length) {
+    const lastMonth = babyPoints[babyPoints.length - 1].x;
+    xMax = Math.min(xAbsMax, Math.ceil(lastMonth + 4));
+    xMax = Math.max(xMax, 3); // at least 3 months visible
+  } else {
+    xMax = 12; // default: first year when no data
+  }
+
+  // Y axis: use WHO range for the visible X window
+  const visibleWho = chartData.filter(d => d.month <= xMax + 2);
+  const allVals = visibleWho.flatMap(d => [d.SD3n, d.SD3]);
   const yMin = Math.floor(Math.min(...allVals) * 0.95);
   const yMax = Math.ceil(Math.max(...allVals) * 1.02);
+
+  const tickStep = xMax <= 6 ? 1 : xMax <= 18 ? 2 : 4;
 
   chartInstance = new Chart(ctx, {
     type: 'line',
@@ -177,12 +192,9 @@ export function renderChart(type, sex, measurements) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          filter: item => item.datasetIndex === whoDatasets.length, // only baby dataset
+          filter: item => item.datasetIndex === whoDatasets.length,
           callbacks: {
-            title: items => {
-              const pt = items[0].raw;
-              return pt.date || '';
-            },
+            title: items => items[0].raw.date || '',
             label: items => {
               const pt = items[0].raw;
               const unit = t(`unit_${type}`);
@@ -191,7 +203,7 @@ export function renderChart(type, sex, measurements) {
               if (ref) {
                 const range = pt.y >= ref.M ? (ref.SD2 - ref.M) : (ref.M - ref.SD2n);
                 const z = range > 0 ? ((pt.y - ref.M) / range).toFixed(1) : '?';
-                zscore = ` (Z: ${z > 0 ? '+' : ''}${z} SD)`;
+                zscore = ` (Z: ${z >= 0 ? '+' : ''}${z} SD)`;
               }
               return `${pt.y} ${unit}${zscore}`;
             },
@@ -201,18 +213,34 @@ export function renderChart(type, sex, measurements) {
             }
           }
         },
+        zoom: {
+          zoom: {
+            wheel: { enabled: true, speed: 0.08 },
+            pinch: { enabled: true },
+            mode: 'x',
+            onZoom: () => showResetBtn(true),
+          },
+          pan: {
+            enabled: true,
+            mode: 'x',
+            onPan: () => showResetBtn(true),
+          },
+          limits: {
+            x: { min: 0, max: xAbsMax, minRange: 1.5 },
+          },
+        },
       },
       scales: {
         x: {
           type: 'linear',
           title: { display: true, text: t('charts_x_label'), font: { size: 11 } },
-          min: 0,
-          max: chartData[chartData.length - 1].month,
+          min: xMin,
+          max: xMax,
           ticks: {
-            stepSize: 4,
+            stepSize: tickStep,
             font: { size: 10 },
             callback: val => {
-              if (val % 4 !== 0) return '';
+              if (val % tickStep !== 0) return '';
               const weeks = Math.round(val * 4.3452);
               return `${weeks}w`;
             },
@@ -222,15 +250,15 @@ export function renderChart(type, sex, measurements) {
         x2: {
           type: 'linear',
           position: 'bottom',
-          min: 0,
-          max: chartData[chartData.length - 1].month,
+          min: xMin,
+          max: xMax,
           ticks: {
-            stepSize: 6,
+            stepSize: tickStep * 1.5,
             font: { size: 9 },
             color: '#9CA3AF',
             callback: val => {
-              if (val % 6 !== 0) return '';
-              return `${val}${t('months_label')}`;
+              if (val % (tickStep * 1.5) !== 0) return '';
+              return `${Math.round(val)}${t('months_label')}`;
             },
           },
           grid: { display: false },
@@ -247,6 +275,19 @@ export function renderChart(type, sex, measurements) {
   });
 }
 
+function showResetBtn(visible) {
+  const btn = document.getElementById('btn-reset-zoom');
+  if (btn) btn.style.display = visible ? '' : 'none';
+}
+
+export function resetZoom() {
+  if (chartInstance) {
+    chartInstance.resetZoom();
+    showResetBtn(false);
+  }
+}
+
 export function destroyChart() {
   if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+  showResetBtn(false);
 }

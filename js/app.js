@@ -6,7 +6,7 @@ import {
   exportAll, importAll, clearAll
 } from './db.js';
 import { calcZScore } from './who-data.js';
-import { renderChart, destroyChart } from './charts.js';
+import { renderChart, destroyChart, resetZoom } from './charts.js';
 
 // ─── State ───────────────────────────────────────────────────
 let activeBabyId = parseInt(localStorage.getItem('bgt_active_baby')) || null;
@@ -73,6 +73,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderActiveChart();
     });
   });
+
+  // Reset zoom button
+  document.getElementById('btn-reset-zoom').addEventListener('click', resetZoom);
 
   // Settings
   document.getElementById('btn-export').addEventListener('click', handleExport);
