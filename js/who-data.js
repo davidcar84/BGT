@@ -362,6 +362,92 @@ const WCFA_GIRLS = [
   {m:60, SD3n:45.5,SD2n:47.5,SD1n:49.5,M:51.5,SD1:53.5,SD2:55.5,SD3:57.5},
 ];
 
+// ─── Fenton 2013 Preterm Growth Charts ──────────────────────
+// Source: Fenton TR, Kim JH (2013). A systematic review and meta-analysis
+// to revise the Fenton growth chart for preterm infants. BMC Pediatrics 13:59.
+// X-axis: cw = corrected weeks (= PMA − 40), range −18 to 0.
+// At cw=0 (term equivalent) values match WHO birth values for continuity.
+// Weight in kg, Length/HC in cm. SD values derived from published centiles.
+
+const FENTON_BOYS_WEIGHT = [
+  // cw  SD3n   SD2n   SD1n    M     SD1    SD2    SD3
+  {cw:-18, SD3n:0.33, SD2n:0.38, SD1n:0.44, M:0.51, SD1:0.59, SD2:0.69, SD3:0.80},
+  {cw:-16, SD3n:0.42, SD2n:0.50, SD1n:0.58, M:0.68, SD1:0.79, SD2:0.93, SD3:1.09},
+  {cw:-14, SD3n:0.55, SD2n:0.66, SD1n:0.78, M:0.93, SD1:1.10, SD2:1.30, SD3:1.55},
+  {cw:-12, SD3n:0.72, SD2n:0.87, SD1n:1.05, M:1.27, SD1:1.52, SD2:1.83, SD3:2.19},
+  {cw:-10, SD3n:0.93, SD2n:1.13, SD1n:1.39, M:1.70, SD1:2.06, SD2:2.50, SD3:3.03},
+  {cw:-8,  SD3n:1.17, SD2n:1.45, SD1n:1.80, M:2.22, SD1:2.72, SD2:3.33, SD3:4.09},
+  {cw:-6,  SD3n:1.43, SD2n:1.79, SD1n:2.24, M:2.77, SD1:3.40, SD2:4.19, SD3:5.14},
+  {cw:-4,  SD3n:1.73, SD2n:2.13, SD1n:2.62, M:3.19, SD1:3.85, SD2:4.65, SD3:5.62},
+  {cw:-2,  SD3n:2.00, SD2n:2.41, SD1n:2.89, M:3.44, SD1:4.05, SD2:4.77, SD3:5.61},
+  {cw:0,   SD3n:2.20, SD2n:2.50, SD1n:3.00, M:3.30, SD1:3.90, SD2:4.40, SD3:5.00},
+];
+
+const FENTON_GIRLS_WEIGHT = [
+  {cw:-18, SD3n:0.29, SD2n:0.34, SD1n:0.40, M:0.47, SD1:0.55, SD2:0.64, SD3:0.75},
+  {cw:-16, SD3n:0.38, SD2n:0.45, SD1n:0.53, M:0.62, SD1:0.73, SD2:0.86, SD3:1.02},
+  {cw:-14, SD3n:0.50, SD2n:0.60, SD1n:0.72, M:0.86, SD1:1.02, SD2:1.21, SD3:1.43},
+  {cw:-12, SD3n:0.65, SD2n:0.79, SD1n:0.96, M:1.16, SD1:1.40, SD2:1.69, SD3:2.03},
+  {cw:-10, SD3n:0.84, SD2n:1.04, SD1n:1.28, M:1.56, SD1:1.90, SD2:2.31, SD3:2.81},
+  {cw:-8,  SD3n:1.07, SD2n:1.33, SD1n:1.65, M:2.04, SD1:2.50, SD2:3.07, SD3:3.76},
+  {cw:-6,  SD3n:1.31, SD2n:1.64, SD1n:2.05, M:2.54, SD1:3.13, SD2:3.87, SD3:4.76},
+  {cw:-4,  SD3n:1.58, SD2n:1.95, SD1n:2.40, M:2.93, SD1:3.55, SD2:4.31, SD3:5.22},
+  {cw:-2,  SD3n:1.83, SD2n:2.22, SD1n:2.67, M:3.19, SD1:3.78, SD2:4.48, SD3:5.30},
+  {cw:0,   SD3n:2.10, SD2n:2.40, SD1n:2.80, M:3.20, SD1:3.80, SD2:4.50, SD3:5.30},
+];
+
+const FENTON_BOYS_LENGTH = [
+  {cw:-18, SD3n:22.4, SD2n:24.0, SD1n:25.6, M:27.2, SD1:28.8, SD2:30.4, SD3:32.0},
+  {cw:-16, SD3n:26.0, SD2n:27.8, SD1n:29.6, M:31.4, SD1:33.2, SD2:35.0, SD3:36.8},
+  {cw:-14, SD3n:29.1, SD2n:31.0, SD1n:32.9, M:34.8, SD1:36.7, SD2:38.6, SD3:40.5},
+  {cw:-12, SD3n:31.8, SD2n:33.8, SD1n:35.8, M:37.8, SD1:39.8, SD2:41.8, SD3:43.8},
+  {cw:-10, SD3n:34.4, SD2n:36.4, SD1n:38.4, M:40.4, SD1:42.4, SD2:44.4, SD3:46.4},
+  {cw:-8,  SD3n:36.8, SD2n:38.8, SD1n:40.8, M:42.8, SD1:44.8, SD2:46.8, SD3:48.8},
+  {cw:-6,  SD3n:39.4, SD2n:41.4, SD1n:43.4, M:45.4, SD1:47.4, SD2:49.4, SD3:51.4},
+  {cw:-4,  SD3n:41.8, SD2n:43.8, SD1n:45.8, M:47.8, SD1:49.8, SD2:51.8, SD3:53.8},
+  {cw:-2,  SD3n:43.6, SD2n:45.6, SD1n:47.6, M:49.6, SD1:51.6, SD2:53.6, SD3:55.6},
+  {cw:0,   SD3n:44.2, SD2n:46.1, SD1n:48.0, M:49.9, SD1:51.8, SD2:53.7, SD3:55.6},
+];
+
+const FENTON_GIRLS_LENGTH = [
+  {cw:-18, SD3n:21.6, SD2n:23.2, SD1n:24.8, M:26.4, SD1:28.0, SD2:29.6, SD3:31.2},
+  {cw:-16, SD3n:25.1, SD2n:26.9, SD1n:28.7, M:30.5, SD1:32.3, SD2:34.1, SD3:35.9},
+  {cw:-14, SD3n:28.2, SD2n:30.1, SD1n:32.0, M:33.9, SD1:35.8, SD2:37.7, SD3:39.6},
+  {cw:-12, SD3n:30.8, SD2n:32.8, SD1n:34.8, M:36.8, SD1:38.8, SD2:40.8, SD3:42.8},
+  {cw:-10, SD3n:33.4, SD2n:35.4, SD1n:37.4, M:39.4, SD1:41.4, SD2:43.4, SD3:45.4},
+  {cw:-8,  SD3n:35.8, SD2n:37.8, SD1n:39.8, M:41.8, SD1:43.8, SD2:45.8, SD3:47.8},
+  {cw:-6,  SD3n:38.4, SD2n:40.4, SD1n:42.4, M:44.4, SD1:46.4, SD2:48.4, SD3:50.4},
+  {cw:-4,  SD3n:40.8, SD2n:42.8, SD1n:44.8, M:46.8, SD1:48.8, SD2:50.8, SD3:52.8},
+  {cw:-2,  SD3n:42.7, SD2n:44.7, SD1n:46.7, M:48.7, SD1:50.7, SD2:52.7, SD3:54.7},
+  {cw:0,   SD3n:43.6, SD2n:45.4, SD1n:47.3, M:49.1, SD1:51.0, SD2:52.9, SD3:54.7},
+];
+
+const FENTON_BOYS_HC = [
+  {cw:-18, SD3n:15.8, SD2n:17.0, SD1n:18.2, M:19.4, SD1:20.6, SD2:21.8, SD3:23.0},
+  {cw:-16, SD3n:18.1, SD2n:19.4, SD1n:20.7, M:22.0, SD1:23.3, SD2:24.6, SD3:25.9},
+  {cw:-14, SD3n:20.1, SD2n:21.4, SD1n:22.7, M:24.0, SD1:25.3, SD2:26.6, SD3:27.9},
+  {cw:-12, SD3n:22.0, SD2n:23.3, SD1n:24.6, M:25.9, SD1:27.2, SD2:28.5, SD3:29.8},
+  {cw:-10, SD3n:23.5, SD2n:24.9, SD1n:26.3, M:27.7, SD1:29.1, SD2:30.5, SD3:31.9},
+  {cw:-8,  SD3n:25.3, SD2n:26.7, SD1n:28.1, M:29.5, SD1:30.9, SD2:32.3, SD3:33.7},
+  {cw:-6,  SD3n:27.1, SD2n:28.5, SD1n:29.9, M:31.3, SD1:32.7, SD2:34.1, SD3:35.5},
+  {cw:-4,  SD3n:28.6, SD2n:30.0, SD1n:31.4, M:32.8, SD1:34.2, SD2:35.6, SD3:37.0},
+  {cw:-2,  SD3n:29.8, SD2n:31.2, SD1n:32.6, M:34.0, SD1:35.4, SD2:36.8, SD3:38.2},
+  {cw:0,   SD3n:30.7, SD2n:31.9, SD1n:33.2, M:34.5, SD1:35.7, SD2:36.9, SD3:38.2},
+];
+
+const FENTON_GIRLS_HC = [
+  {cw:-18, SD3n:15.3, SD2n:16.5, SD1n:17.7, M:18.9, SD1:20.1, SD2:21.3, SD3:22.5},
+  {cw:-16, SD3n:17.6, SD2n:18.9, SD1n:20.2, M:21.5, SD1:22.8, SD2:24.1, SD3:25.4},
+  {cw:-14, SD3n:19.6, SD2n:20.9, SD1n:22.2, M:23.5, SD1:24.8, SD2:26.1, SD3:27.4},
+  {cw:-12, SD3n:21.5, SD2n:22.8, SD1n:24.1, M:25.4, SD1:26.7, SD2:28.0, SD3:29.3},
+  {cw:-10, SD3n:23.0, SD2n:24.4, SD1n:25.8, M:27.2, SD1:28.6, SD2:30.0, SD3:31.4},
+  {cw:-8,  SD3n:24.8, SD2n:26.2, SD1n:27.6, M:29.0, SD1:30.4, SD2:31.8, SD3:33.2},
+  {cw:-6,  SD3n:26.6, SD2n:28.0, SD1n:29.4, M:30.8, SD1:32.2, SD2:33.6, SD3:35.0},
+  {cw:-4,  SD3n:28.1, SD2n:29.5, SD1n:30.9, M:32.3, SD1:33.7, SD2:35.1, SD3:36.5},
+  {cw:-2,  SD3n:29.3, SD2n:30.7, SD1n:32.1, M:33.5, SD1:34.9, SD2:36.3, SD3:37.7},
+  {cw:0,   SD3n:30.3, SD2n:31.5, SD1n:32.7, M:33.9, SD1:35.1, SD2:36.2, SD3:37.4},
+];
+
 // ─── Interpolation: get reference for a given week ──────────
 function interpolate(table, months) {
   if (!table || table.length === 0) return null;
@@ -398,15 +484,41 @@ function getTable(type, sex) {
   return map[type]?.[s] || null;
 }
 
+// ─── Fenton interpolation (indexed by corrected weeks) ──────
+function getFentonTable(type, sex) {
+  const s = sex === 'female' ? 'GIRLS' : 'BOYS';
+  const map = {
+    weight:            { BOYS: FENTON_BOYS_WEIGHT, GIRLS: FENTON_GIRLS_WEIGHT },
+    length:            { BOYS: FENTON_BOYS_LENGTH, GIRLS: FENTON_GIRLS_LENGTH },
+    headCircumference: { BOYS: FENTON_BOYS_HC,     GIRLS: FENTON_GIRLS_HC     },
+  };
+  return map[type]?.[s] || null;
+}
+
+function interpolateByCW(table, cw) {
+  if (!table || !table.length) return null;
+  let lo = table[0], hi = table[table.length - 1];
+  for (let i = 0; i < table.length - 1; i++) {
+    if (table[i].cw <= cw && table[i+1].cw >= cw) { lo = table[i]; hi = table[i+1]; break; }
+  }
+  if (lo.cw === hi.cw) return lo;
+  const t = (cw - lo.cw) / (hi.cw - lo.cw);
+  const lerp = (a, b) => a + (b - a) * t;
+  return { SD3n: lerp(lo.SD3n,hi.SD3n), SD2n: lerp(lo.SD2n,hi.SD2n), SD1n: lerp(lo.SD1n,hi.SD1n),
+           M: lerp(lo.M,hi.M), SD1: lerp(lo.SD1,hi.SD1), SD2: lerp(lo.SD2,hi.SD2), SD3: lerp(lo.SD3,hi.SD3) };
+}
+
 /**
- * Get reference values for a specific type, sex, and corrected age in weeks.
- * Returns {SD3n, SD2n, SD1n, M, SD1, SD2, SD3} or null.
+ * Get reference values for a corrected age in weeks (can be negative for preterm).
  */
 export function getReference(type, sex, correctedAgeWeeks) {
+  if (correctedAgeWeeks < 0) {
+    const ft = getFentonTable(type, sex);
+    return ft ? interpolateByCW(ft, correctedAgeWeeks) : null;
+  }
   const table = getTable(type, sex);
   if (!table) return null;
-  const months = correctedAgeWeeks / 4.3452; // weeks → months
-  return interpolate(table, months);
+  return interpolate(table, correctedAgeWeeks / 4.3452);
 }
 
 /**
@@ -415,28 +527,51 @@ export function getReference(type, sex, correctedAgeWeeks) {
 export function calcZScore(type, sex, correctedAgeWeeks, value) {
   const ref = getReference(type, sex, correctedAgeWeeks);
   if (!ref) return null;
-  // Use linear interpolation between SD lines
   if (value < ref.M) {
-    const sdRange = ref.M - ref.SD2n;
-    if (sdRange <= 0) return null;
-    return (value - ref.M) / sdRange;
+    const r = ref.M - ref.SD2n; if (r <= 0) return null;
+    return (value - ref.M) / r;
   } else {
-    const sdRange = ref.SD2 - ref.M;
-    if (sdRange <= 0) return null;
-    return (value - ref.M) / sdRange;
+    const r = ref.SD2 - ref.M; if (r <= 0) return null;
+    return (value - ref.M) / r;
   }
 }
 
 /**
- * Get the full table for charting (array of reference points, one per month).
- * Returns months 0–60 (or available range).
+ * Get combined Fenton + WHO data for charting, unified in corrected WEEKS.
+ * Returns array of {cw, SD3n, SD2n, SD1n, M, SD1, SD2, SD3}
+ * cw < 0  → preterm zone (Fenton 2013)
+ * cw >= 0 → post-term zone (WHO 2006, every 2 weeks)
  */
+export function getChartDataFull(type, sex) {
+  const result = [];
+
+  // 1. Fenton section: cw −18 to −2 (skip 0 to avoid duplicate)
+  const ft = getFentonTable(type, sex);
+  if (ft) {
+    for (let cw = ft[0].cw; cw < 0; cw += 1) {
+      const ref = interpolateByCW(ft, cw);
+      if (ref) result.push({ cw, ...ref });
+    }
+  }
+
+  // 2. WHO section: cw 0 to ~260 (month 0 to 60), every 2 weeks
+  const table = getTable(type, sex);
+  if (table) {
+    const maxMonth = table[table.length - 1].m;
+    for (let cw = 0; cw <= maxMonth * 4.3452; cw += 2) {
+      const ref = interpolate(table, cw / 4.3452);
+      if (ref) result.push({ cw, ...ref });
+    }
+  }
+
+  return result;
+}
+
+// Keep getChartData for backwards compat (used internally)
 export function getChartData(type, sex) {
   const table = getTable(type, sex);
   if (!table) return [];
-  // Fill all months from min to max in table by interpolating
-  const minM = table[0].m;
-  const maxM = table[table.length - 1].m;
+  const minM = table[0].m, maxM = table[table.length - 1].m;
   const result = [];
   for (let m = minM; m <= maxM; m++) {
     const ref = interpolate(table, m);

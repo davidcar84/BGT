@@ -1,4 +1,4 @@
-import { getChartData, getReference } from './who-data.js';
+import { getChartDataFull, getReference } from './who-data.js';
 import { t } from './i18n.js';
 
 let chartInstance = null;
@@ -127,17 +127,17 @@ export function renderChart(type, sex, measurements) {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
 
-  // Destroy existing instance
   if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
 
-  const chartData = getChartData(type, sex);
+  // Combined Fenton + WHO reference data in corrected weeks
+  const chartData = getChartDataFull(type, sex);
   if (!chartData.length) return;
 
-  const whoLabels = chartData.map(d => d.month); // x = months
+  const refLabels = chartData.map(d => d.cw); // x = corrected weeks
 
-  // Baby data: convert corrected weeks → months for x-axis
+  // Baby data points (x = corrected weeks, can be negative for preterm)
   const babyPoints = measurements.map(m => ({
-    x: m.correctedAgeWeeks / 4.3452,
+    x: m.correctedAgeWeeks,
     y: m.value,
     date: m.date,
     weeks: m.correctedAgeWeeks,
@@ -158,31 +158,46 @@ export function renderChart(type, sex, measurements) {
   };
 
   const whoDatasets = buildWhoDatasets(chartData);
-  const xAbsMax = chartData[chartData.length - 1].month; // 60
+  const xAbsMin = chartData[0].cw;           // −18 (if preterm) or 0
+  const xAbsMax = chartData[chartData.length - 1].cw; // ~260 weeks
 
-  // X axis: auto-scale to data range; show ~6-month window past last point
-  let xMin = 0;
-  let xMax = xAbsMax;
+  // ── Default view: 16-week window ending ~4w past the last measurement ──
+  let xMax, xMin;
   if (babyPoints.length) {
-    const lastMonth = babyPoints[babyPoints.length - 1].x;
-    xMax = Math.min(xAbsMax, Math.ceil(lastMonth + 4));
-    xMax = Math.max(xMax, 3); // at least 3 months visible
+    const lastCW  = babyPoints[babyPoints.length - 1].x;
+    const firstCW = babyPoints[0].x;
+    xMax = Math.min(xAbsMax, lastCW + 4);
+    xMin = Math.max(xAbsMin, xMax - 16);
+    // If range spans less than 16w, expand left
+    if (xMax - xMin < 16) xMin = Math.max(xAbsMin, xMax - 16);
+    // Always show at least the full data range
+    xMin = Math.min(xMin, firstCW - 2);
   } else {
-    xMax = 12; // default: first year when no data
+    xMin = -2; xMax = 14; // default: just before term → 3 months post-term
   }
 
-  // Y axis: use WHO range for the visible X window
-  const visibleWho = chartData.filter(d => d.month <= xMax + 2);
-  const allVals = visibleWho.flatMap(d => [d.SD3n, d.SD3]);
+  // ── Y axis range for visible window (± 1 week padding) ──
+  const visRef = chartData.filter(d => d.cw >= xMin - 2 && d.cw <= xMax + 2);
+  const allVals = visRef.flatMap(d => [d.SD3n, d.SD3]);
   const yMin = Math.floor(Math.min(...allVals) * 0.95);
   const yMax = Math.ceil(Math.max(...allVals) * 1.02);
 
-  const tickStep = xMax <= 6 ? 1 : xMax <= 18 ? 2 : 4;
+  // ── X tick callback: PMA label for preterm, weeks/months post-term ──
+  function xLabel(cw) {
+    if (cw < 0) return `PMA ${40 + Math.round(cw)}w`;
+    if (cw === 0) return 'Term';
+    if (cw <= 16) return `${Math.round(cw)}w`;
+    const mo = Math.round(cw / 4.3452);
+    return `${mo}${t('months_label')}`;
+  }
+
+  const range = xMax - xMin;
+  const step  = range <= 8 ? 1 : range <= 20 ? 2 : range <= 52 ? 4 : 8;
 
   chartInstance = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: whoLabels,
+      labels: refLabels,
       datasets: [...whoDatasets, babyDataset],
     },
     options: {
@@ -198,24 +213,28 @@ export function renderChart(type, sex, measurements) {
             label: items => {
               const pt = items[0].raw;
               const unit = t(`unit_${type}`);
-              const ref = getReference(type, sex, pt.weeks);
+              const ref  = getReference(type, sex, pt.weeks);
               let zscore = '';
               if (ref) {
-                const range = pt.y >= ref.M ? (ref.SD2 - ref.M) : (ref.M - ref.SD2n);
-                const z = range > 0 ? ((pt.y - ref.M) / range).toFixed(1) : '?';
+                const r = pt.y >= ref.M ? (ref.SD2 - ref.M) : (ref.M - ref.SD2n);
+                const z = r > 0 ? ((pt.y - ref.M) / r).toFixed(1) : '?';
                 zscore = ` (Z: ${z >= 0 ? '+' : ''}${z} SD)`;
               }
               return `${pt.y} ${unit}${zscore}`;
             },
             afterLabel: items => {
               const pt = items[0].raw;
-              return `${t('register_corr_age')}: ${Math.round(pt.weeks)} ${t('register_weeks')}`;
+              const pmaLabel = pt.weeks < 0 ? `PMA ${40 + Math.round(pt.weeks)}w` : '';
+              return [
+                `${t('register_corr_age')}: ${Math.round(pt.weeks)}w`,
+                pmaLabel,
+              ].filter(Boolean).join(' · ');
             }
           }
         },
         zoom: {
           zoom: {
-            wheel: { enabled: true, speed: 0.08 },
+            wheel: { enabled: true, speed: 0.1 },
             pinch: { enabled: true },
             mode: 'x',
             onZoom: () => showResetBtn(true),
@@ -225,9 +244,7 @@ export function renderChart(type, sex, measurements) {
             mode: 'x',
             onPan: () => showResetBtn(true),
           },
-          limits: {
-            x: { min: 0, max: xAbsMax, minRange: 1.5 },
-          },
+          limits: { x: { min: xAbsMin, max: xAbsMax, minRange: 4 } },
         },
       },
       scales: {
@@ -237,31 +254,11 @@ export function renderChart(type, sex, measurements) {
           min: xMin,
           max: xMax,
           ticks: {
-            stepSize: tickStep,
+            stepSize: step,
             font: { size: 10 },
-            callback: val => {
-              if (val % tickStep !== 0) return '';
-              const weeks = Math.round(val * 4.3452);
-              return `${weeks}w`;
-            },
+            callback: val => val % step !== 0 ? '' : xLabel(val),
           },
           grid: { color: 'rgba(0,0,0,0.05)' },
-        },
-        x2: {
-          type: 'linear',
-          position: 'bottom',
-          min: xMin,
-          max: xMax,
-          ticks: {
-            stepSize: tickStep * 1.5,
-            font: { size: 9 },
-            color: '#9CA3AF',
-            callback: val => {
-              if (val % (tickStep * 1.5) !== 0) return '';
-              return `${Math.round(val)}${t('months_label')}`;
-            },
-          },
-          grid: { display: false },
         },
         y: {
           title: { display: true, text: t(`yaxis_${type}`), font: { size: 11 } },
