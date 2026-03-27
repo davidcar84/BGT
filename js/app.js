@@ -204,7 +204,7 @@ function openAddBabyModal() {
   document.getElementById('baby-sex').value = 'male';
   document.querySelectorAll('.sex-btn').forEach(b => b.classList.toggle('active', b.dataset.sex === 'male'));
   document.getElementById('baby-error').style.display = 'none';
-  document.getElementById('baby-modal').style.display = '';
+  document.getElementById('baby-modal').style.display = 'flex';
 }
 
 function openEditBabyModal(baby) {
@@ -217,7 +217,7 @@ function openEditBabyModal(baby) {
   document.getElementById('baby-sex').value = baby.sex;
   document.querySelectorAll('.sex-btn').forEach(b => b.classList.toggle('active', b.dataset.sex === baby.sex));
   document.getElementById('baby-error').style.display = 'none';
-  document.getElementById('baby-modal').style.display = '';
+  document.getElementById('baby-modal').style.display = 'flex';
 }
 
 function closeBabyModal() {
@@ -455,7 +455,7 @@ function confirm(message, callback) {
   document.getElementById('confirm-ok').textContent = t('btn_confirm');
   document.getElementById('confirm-cancel').textContent = t('btn_close');
   confirmCallback = callback;
-  document.getElementById('confirm-modal').style.display = '';
+  document.getElementById('confirm-modal').style.display = 'flex';
 }
 
 function closeConfirm() {
