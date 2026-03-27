@@ -12,7 +12,7 @@ export function calcAges(birthDate, measDate, gestationalAgeWeeks) {
   const diffMs = meas - birth;
   const chronWeeks = Math.round(diffMs / (7 * 24 * 3600 * 1000));
   const correction = 40 - (gestationalAgeWeeks || 40);
-  const corrWeeks  = Math.max(0, chronWeeks - correction);
+  const corrWeeks  = chronWeeks - correction;
   return { chronWeeks, corrWeeks, isPreterm: gestationalAgeWeeks < 37 };
 }
 
