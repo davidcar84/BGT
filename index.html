@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#4A90E2" />
+  <meta name="description" content="Baby Growth Tracker — WHO growth standard charts" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="BGT" />
+  <title>Baby Growth Tracker</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <h1 class="app-title">👶 BGT</h1>
+    <button id="lang-switch" class="lang-btn" aria-label="Switch language">🇺🇸 EN</button>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="app-main">
+
+    <!-- TAB: BABIES -->
+    <section id="tab-babies" class="tab-content active">
+      <div class="section-header">
+        <h2 data-i18n="babies_title">My Babies</h2>
+        <button id="btn-add-baby" class="btn-primary btn-icon" aria-label="Add baby">＋</button>
+      </div>
+      <p class="hint-text" data-i18n="babies_select_hint">Tap a card to select</p>
+      <div id="babies-list" class="babies-list">
+        <p class="empty-msg" data-i18n="babies_empty">No babies registered yet. Tap + to add one.</p>
+      </div>
+    </section>
+
+    <!-- TAB: REGISTER -->
+    <section id="tab-register" class="tab-content">
+      <div class="section-header">
+        <h2 data-i18n="register_title">Register Measurement</h2>
+      </div>
+      <div id="register-no-baby" class="no-baby-msg" style="display:none">
+        <span data-i18n="register_no_baby">Select a baby first 👶</span>
+      </div>
+      <div id="register-form-area">
+        <div class="active-baby-bar" id="active-baby-bar" style="display:none"></div>
+        <form id="measurement-form" class="card form-card" autocomplete="off">
+          <div class="form-group">
+            <label for="meas-date" data-i18n="register_date">Date</label>
+            <input type="date" id="meas-date" required />
+          </div>
+          <div class="form-group">
+            <label for="meas-type" data-i18n="register_type">Measurement</label>
+            <select id="meas-type">
+              <option value="weight" data-i18n="register_type_weight">Weight (kg)</option>
+              <option value="length" data-i18n="register_type_length">Length / Height (cm)</option>
+              <option value="headCircumference" data-i18n="register_type_head">Head Circumference (cm)</option>
+              <option value="waistCircumference" data-i18n="register_type_waist">Waist Circumference (cm)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="meas-value" data-i18n="register_value">Value</label>
+            <input type="number" id="meas-value" step="0.01" min="0" required />
+          </div>
+          <div class="age-display" id="age-display" style="display:none">
+            <span class="age-item"><span data-i18n="register_chron_age">Chronological age</span>: <strong id="chron-age-val">—</strong> <span data-i18n="register_weeks">weeks</span></span>
+            <span class="age-item"><span data-i18n="register_corr_age">Corrected age</span>: <strong id="corr-age-val">—</strong> <span data-i18n="register_weeks">weeks</span></span>
+          </div>
+          <div class="form-error" id="meas-error" style="display:none"></div>
+          <button type="submit" class="btn-primary btn-full" data-i18n="register_save">Save</button>
+        </form>
+
+        <div class="section-subheader">
+          <h3 data-i18n="register_history_title">Measurement History</h3>
+        </div>
+        <div class="table-wrapper">
+          <table class="meas-table" id="meas-table">
+            <thead>
+              <tr>
+                <th data-i18n="register_col_date">Date</th>
+                <th data-i18n="register_col_type">Type</th>
+                <th data-i18n="register_col_value">Value</th>
+                <th data-i18n="register_col_corr">Corr.</th>
+                <th data-i18n="register_col_zscore">Z-score</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="meas-tbody">
+              <tr><td colspan="6" class="empty-msg" data-i18n="register_empty">No measurements recorded yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB: CHARTS -->
+    <section id="tab-charts" class="tab-content">
+      <div class="section-header">
+        <h2 data-i18n="charts_title">Growth Charts</h2>
+      </div>
+      <div id="charts-no-baby" class="no-baby-msg" style="display:none">
+        <span data-i18n="charts_no_baby">Select a baby first 👶</span>
+      </div>
+      <div id="charts-area">
+        <div id="charts-baby-info" class="active-baby-bar" style="display:none"></div>
+        <div class="chart-type-tabs" id="chart-type-tabs">
+          <button class="chart-tab active" data-type="weight" data-i18n="charts_tab_weight">Weight</button>
+          <button class="chart-tab" data-type="length" data-i18n="charts_tab_length">Length</button>
+          <button class="chart-tab" data-type="headCircumference" data-i18n="charts_tab_head">Head</button>
+          <button class="chart-tab" data-type="waistCircumference" data-i18n="charts_tab_waist">Waist</button>
+        </div>
+        <div class="chart-age-note" id="chart-age-note"></div>
+        <div class="chart-container">
+          <canvas id="growth-chart"></canvas>
+        </div>
+        <div class="chart-legend" id="chart-legend">
+          <span class="legend-item legend-normal" data-i18n="charts_legend_normal">Normal (±1 SD)</span>
+          <span class="legend-item legend-warning" data-i18n="charts_legend_warning">Warning (±2 SD)</span>
+          <span class="legend-item legend-alert" data-i18n="charts_legend_alert">Alert (±3 SD)</span>
+          <span class="legend-item legend-baby" data-i18n="charts_legend_baby">Baby's data</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB: SETTINGS -->
+    <section id="tab-settings" class="tab-content">
+      <h2 data-i18n="settings_title">Settings</h2>
+      <div class="settings-list">
+        <div class="card settings-card">
+          <h3 data-i18n="settings_language">Language</h3>
+          <div class="lang-options">
+            <button class="lang-opt-btn active" data-lang="en">🇺🇸 English</button>
+            <button class="lang-opt-btn" data-lang="es">🇪🇸 Español</button>
+          </div>
+        </div>
+        <div class="card settings-card">
+          <h3 data-i18n="settings_about">About</h3>
+          <p data-i18n="settings_standard">Growth standard: WHO Child Growth Standards (2006)</p>
+          <p class="version-text"><span data-i18n="settings_version">Version</span> 1.0.0</p>
+        </div>
+        <div class="card settings-card">
+          <button id="btn-export" class="btn-secondary btn-full" data-i18n="settings_export">Export Data (JSON)</button>
+          <label for="btn-import" class="btn-secondary btn-full btn-label" data-i18n="settings_import">Import Data (JSON)</label>
+          <input type="file" id="btn-import" accept=".json" style="display:none" />
+        </div>
+        <div class="card settings-card danger-card">
+          <button id="btn-clear" class="btn-danger btn-full" data-i18n="settings_clear">Clear All Data</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-tab="babies">
+      <span class="nav-icon">👶</span>
+      <span class="nav-label" data-i18n="nav_babies">Babies</span>
+    </button>
+    <button class="nav-btn" data-tab="register">
+      <span class="nav-icon">📏</span>
+      <span class="nav-label" data-i18n="nav_register">Register</span>
+    </button>
+    <button class="nav-btn" data-tab="charts">
+      <span class="nav-icon">📈</span>
+      <span class="nav-label" data-i18n="nav_charts">Charts</span>
+    </button>
+    <button class="nav-btn" data-tab="settings">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label" data-i18n="nav_settings">Settings</span>
+    </button>
+  </nav>
+
+  <!-- MODAL: Add/Edit Baby -->
+  <div id="baby-modal" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="baby-modal-title" data-i18n="baby_form_title_add">Add Baby</h3>
+        <button class="modal-close" id="baby-modal-close" aria-label="Close">✕</button>
+      </div>
+      <form id="baby-form" autocomplete="off">
+        <input type="hidden" id="baby-id" />
+        <div class="form-group">
+          <label for="baby-name" data-i18n="baby_form_name">Name</label>
+          <input type="text" id="baby-name" required />
+        </div>
+        <div class="form-group">
+          <label data-i18n="baby_form_sex">Sex</label>
+          <div class="sex-toggle">
+            <button type="button" class="sex-btn active" data-sex="male" data-i18n="baby_form_sex_male">Male</button>
+            <button type="button" class="sex-btn" data-sex="female" data-i18n="baby_form_sex_female">Female</button>
+          </div>
+          <input type="hidden" id="baby-sex" value="male" />
+        </div>
+        <div class="form-group">
+          <label for="baby-dob" data-i18n="baby_form_dob">Date of Birth</label>
+          <input type="date" id="baby-dob" required />
+        </div>
+        <div class="form-group">
+          <label for="baby-ga"><span data-i18n="baby_form_ga">Gestational Age at Birth</span> (<span data-i18n="baby_form_ga_unit">weeks</span>)</label>
+          <input type="number" id="baby-ga" value="40" min="22" max="42" required />
+          <small class="form-hint" data-i18n="baby_form_ga_hint">Enter 40 for full-term</small>
+        </div>
+        <div class="form-group">
+          <label for="baby-notes" data-i18n="baby_form_notes">Notes (optional)</label>
+          <textarea id="baby-notes" rows="2"></textarea>
+        </div>
+        <div class="form-error" id="baby-error" style="display:none"></div>
+        <button type="submit" class="btn-primary btn-full" data-i18n="baby_form_save">Save</button>
+        <button type="button" class="btn-ghost btn-full" id="baby-form-cancel" data-i18n="baby_form_cancel">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Confirm -->
+  <div id="confirm-modal" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
+    <div class="modal-box modal-box--sm">
+      <h3 id="confirm-title" data-i18n="confirm_title">Are you sure?</h3>
+      <p id="confirm-message"></p>
+      <div class="confirm-actions">
+        <button id="confirm-ok" class="btn-danger" data-i18n="btn_confirm">Confirm</button>
+        <button id="confirm-cancel" class="btn-ghost" data-i18n="btn_close">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
