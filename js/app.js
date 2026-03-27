@@ -80,9 +80,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btn-clear').addEventListener('click', handleClear);
 
   // Confirm modal
+  document.getElementById('confirm-ok').addEventListener('click', () => {
+    if (confirmCallback) confirmCallback();
+    closeConfirm();
+  });
   document.getElementById('confirm-cancel').addEventListener('click', closeConfirm);
 
-  // Close modal on overlay click
+  // Close modals on overlay click
   document.getElementById('baby-modal').addEventListener('click', e => {
     if (e.target === document.getElementById('baby-modal')) closeBabyModal();
   });
@@ -204,7 +208,7 @@ function openAddBabyModal() {
   document.getElementById('baby-sex').value = 'male';
   document.querySelectorAll('.sex-btn').forEach(b => b.classList.toggle('active', b.dataset.sex === 'male'));
   document.getElementById('baby-error').style.display = 'none';
-  document.getElementById('baby-modal').style.display = 'flex';
+  document.getElementById('baby-modal').classList.add('open');
 }
 
 function openEditBabyModal(baby) {
@@ -217,11 +221,11 @@ function openEditBabyModal(baby) {
   document.getElementById('baby-sex').value = baby.sex;
   document.querySelectorAll('.sex-btn').forEach(b => b.classList.toggle('active', b.dataset.sex === baby.sex));
   document.getElementById('baby-error').style.display = 'none';
-  document.getElementById('baby-modal').style.display = 'flex';
+  document.getElementById('baby-modal').classList.add('open');
 }
 
 function closeBabyModal() {
-  document.getElementById('baby-modal').style.display = 'none';
+  document.getElementById('baby-modal').classList.remove('open');
 }
 
 async function handleBabyFormSubmit(e) {
@@ -455,20 +459,14 @@ function confirm(message, callback) {
   document.getElementById('confirm-ok').textContent = t('btn_confirm');
   document.getElementById('confirm-cancel').textContent = t('btn_close');
   confirmCallback = callback;
-  document.getElementById('confirm-modal').style.display = 'flex';
+  document.getElementById('confirm-modal').classList.add('open');
 }
 
 function closeConfirm() {
-  document.getElementById('confirm-modal').style.display = 'none';
+  document.getElementById('confirm-modal').classList.remove('open');
   confirmCallback = null;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('confirm-ok').addEventListener('click', () => {
-    if (confirmCallback) confirmCallback();
-    closeConfirm();
-  });
-});
 
 // ─── Toast ────────────────────────────────────────────────────
 function showToast(msg) {

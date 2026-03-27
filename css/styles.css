@@ -490,14 +490,17 @@ html, body {
 
 /* ─── Modal ──────────────────────────────────────────────── */
 .modal-overlay {
+  display: none;
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.5);
   z-index: 500;
-  display: flex;
   align-items: flex-end;
   justify-content: center;
   padding: 0;
+}
+.modal-overlay.open {
+  display: flex;
   animation: fade-in 0.15s ease;
 }
 

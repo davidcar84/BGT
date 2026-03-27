@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bgt-v1.0.0';
+const CACHE_NAME = 'bgt-v1.0.2';
 const ASSETS = [
   '.',
   './index.html',
