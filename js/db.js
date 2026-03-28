@@ -55,6 +55,10 @@ export async function addMeasurement(data) {
   return db.measurements.add(data);
 }
 
+export async function updateMeasurement(id, data) {
+  return db.measurements.update(id, data);
+}
+
 export async function deleteMeasurement(id) {
   return db.measurements.delete(id);
 }

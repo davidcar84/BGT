@@ -1,7 +1,7 @@
 import { t, getLang, setLang, applyDomTranslations } from './i18n.js';
 import {
   getBabies, getBaby, saveBaby, deleteBaby,
-  getMeasurements, addMeasurement, deleteMeasurement,
+  getMeasurements, addMeasurement, updateMeasurement, deleteMeasurement,
   calcAges, shouldUseCorrection,
   exportAll, importAll, clearAll
 } from './db.js';
@@ -63,6 +63,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('measurement-form').addEventListener('submit', handleMeasSave);
   document.getElementById('meas-date').addEventListener('change', updateAgeDisplay);
   document.getElementById('meas-date').value = todayISO();
+  document.getElementById('btn-cancel-edit').addEventListener('click', cancelEditMeas);
 
   // Chart tabs
   document.querySelectorAll('.chart-tab').forEach(btn => {
@@ -297,16 +298,39 @@ function updateAgeDisplay() {
   });
 }
 
+function openEditMeasurement(m) {
+  document.getElementById('meas-id').value = m.id;
+  document.getElementById('meas-date').value = m.date;
+  document.getElementById('meas-type').value = m.type;
+  document.getElementById('meas-value').value = m.value;
+  document.getElementById('meas-edit-banner').style.display = '';
+  document.getElementById('meas-submit-btn').textContent = t('register_update');
+  document.getElementById('meas-error').style.display = 'none';
+  updateAgeDisplay();
+  document.getElementById('measurement-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function cancelEditMeas() {
+  document.getElementById('meas-id').value = '';
+  document.getElementById('meas-value').value = '';
+  document.getElementById('meas-date').value = todayISO();
+  document.getElementById('meas-edit-banner').style.display = 'none';
+  document.getElementById('meas-submit-btn').setAttribute('data-i18n', 'register_save');
+  document.getElementById('meas-submit-btn').textContent = t('register_save');
+  document.getElementById('meas-error').style.display = 'none';
+}
+
 async function handleMeasSave(e) {
   e.preventDefault();
   if (!activeBabyId) return;
   const errorEl = document.getElementById('meas-error');
   errorEl.style.display = 'none';
 
-  const baby  = await getBaby(activeBabyId);
-  const date  = document.getElementById('meas-date').value;
-  const type  = document.getElementById('meas-type').value;
-  const value = parseFloat(document.getElementById('meas-value').value);
+  const baby    = await getBaby(activeBabyId);
+  const editId  = document.getElementById('meas-id').value;
+  const date    = document.getElementById('meas-date').value;
+  const type    = document.getElementById('meas-type').value;
+  const value   = parseFloat(document.getElementById('meas-value').value);
 
   if (!date) { showFormError(errorEl, t('error_required')); return; }
   if (isNaN(value)) { showFormError(errorEl, t('error_invalid_number')); return; }
@@ -315,18 +339,16 @@ async function handleMeasSave(e) {
   if (validationError) { showFormError(errorEl, validationError); return; }
 
   const { chronWeeks, corrWeeks } = calcAges(baby.birthDate, date, baby.gestationalAgeWeeks);
+  const measData = { babyId: activeBabyId, date, type, value,
+                     chronologicalAgeWeeks: chronWeeks, correctedAgeWeeks: corrWeeks };
 
-  await addMeasurement({
-    babyId: activeBabyId,
-    date,
-    type,
-    value,
-    chronologicalAgeWeeks: chronWeeks,
-    correctedAgeWeeks: corrWeeks,
-  });
+  if (editId) {
+    await updateMeasurement(parseInt(editId), measData);
+  } else {
+    await addMeasurement(measData);
+  }
 
-  document.getElementById('meas-value').value = '';
-  document.getElementById('meas-date').value = todayISO();
+  cancelEditMeas();
   showToast(t('success_saved'));
   await renderMeasHistory(baby);
 }
@@ -360,9 +382,14 @@ async function renderMeasHistory(baby) {
       <td>${m.value} ${unit}${warningHtml}</td>
       <td>${m.correctedAgeWeeks}w</td>
       <td class="${zClass}">${zLabel}</td>
-      <td><button class="btn-del-meas" data-id="${m.id}" title="${t('btn_delete')}">🗑</button></td>
+      <td class="meas-row-actions">
+        <button class="btn-edit-meas" title="${t('btn_edit')}">✏️</button>
+        <button class="btn-del-meas"  title="${t('btn_delete')}">🗑</button>
+      </td>
     `;
+    tr.querySelector('.btn-edit-meas').addEventListener('click', () => openEditMeasurement(m));
     tr.querySelector('.btn-del-meas').addEventListener('click', async () => {
+      if (document.getElementById('meas-id').value == m.id) cancelEditMeas();
       await deleteMeasurement(m.id);
       await renderMeasHistory(baby);
     });

@@ -47,6 +47,11 @@
       <div id="register-form-area">
         <div class="active-baby-bar" id="active-baby-bar" style="display:none"></div>
         <form id="measurement-form" class="card form-card" autocomplete="off">
+          <input type="hidden" id="meas-id" />
+          <div id="meas-edit-banner" class="meas-edit-banner" style="display:none">
+            <span data-i18n="register_edit_mode">Editing measurement</span>
+            <button type="button" id="btn-cancel-edit" class="btn-cancel-edit" data-i18n="register_cancel_edit">✕ Cancel</button>
+          </div>
           <div class="form-group">
             <label for="meas-date" data-i18n="register_date">Date</label>
             <input type="date" id="meas-date" required />
@@ -69,7 +74,7 @@
             <span class="age-item"><span data-i18n="register_corr_age">Corrected age</span>: <strong id="corr-age-val">—</strong> <span data-i18n="register_weeks">weeks</span></span>
           </div>
           <div class="form-error" id="meas-error" style="display:none"></div>
-          <button type="submit" class="btn-primary btn-full" data-i18n="register_save">Save</button>
+          <button type="submit" id="meas-submit-btn" class="btn-primary btn-full" data-i18n="register_save">Save</button>
         </form>
 
         <div class="section-subheader">
