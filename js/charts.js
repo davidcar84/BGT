@@ -150,7 +150,8 @@ export function renderChart(type, sex, measurements) {
     borderColor: BABY_COLOR,
     backgroundColor: BABY_COLOR,
     pointRadius: 5,
-    pointHoverRadius: 7,
+    pointHoverRadius: 9,
+    pointHitRadius: 18,
     borderWidth: 2,
     tension: 0,
     fill: false,
@@ -203,34 +204,53 @@ export function renderChart(type, sex, measurements) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      interaction: { mode: 'nearest', intersect: false },
+      interaction: { mode: 'nearest', intersect: true },
+      onClick: (event, elements) => {
+        const el = elements.find(e => e.datasetIndex === whoDatasets.length);
+        if (el) {
+          chartInstance.tooltip.setActiveElements([el], { x: event.x ?? 0, y: event.y ?? 0 });
+        } else {
+          chartInstance.tooltip.setActiveElements([], {});
+        }
+        chartInstance.update();
+      },
       plugins: {
         legend: { display: false },
         tooltip: {
+          enabled: true,
           filter: item => item.datasetIndex === whoDatasets.length,
+          backgroundColor: 'rgba(20, 26, 48, 0.93)',
+          titleColor: '#FFFFFF',
+          bodyColor: 'rgba(255,255,255,0.88)',
+          titleFont: { size: 13, weight: '700' },
+          bodyFont: { size: 12 },
+          padding: { top: 10, right: 14, bottom: 10, left: 14 },
+          cornerRadius: 10,
+          displayColors: false,
+          titleAlign: 'center',
+          bodyAlign: 'left',
           callbacks: {
-            title: items => items[0].raw.date || '',
-            label: items => {
-              const pt = items[0].raw;
+            title: items => items[0].raw.date ?? '',
+            label: item => {
+              const pt = item.raw;
               const unit = t(`unit_${type}`);
               const ref  = getReference(type, sex, pt.weeks);
               let zscore = '';
               if (ref) {
                 const r = pt.y >= ref.M ? (ref.SD2 - ref.M) : (ref.M - ref.SD2n);
-                const z = r > 0 ? ((pt.y - ref.M) / r).toFixed(1) : '?';
-                zscore = ` (Z: ${z >= 0 ? '+' : ''}${z} SD)`;
+                const z = r > 0 ? ((pt.y - ref.M) / r).toFixed(2) : null;
+                if (z !== null) zscore = `  Z: ${parseFloat(z) >= 0 ? '+' : ''}${z} SD`;
               }
-              return `${pt.y} ${unit}${zscore}`;
+              return `  ${pt.y} ${unit}${zscore}`;
             },
-            afterLabel: items => {
-              const pt = items[0].raw;
-              const pmaLabel = pt.weeks < 0 ? `PMA ${40 + Math.round(pt.weeks)}w` : '';
-              return [
-                `${t('register_corr_age')}: ${Math.round(pt.weeks)}w`,
-                pmaLabel,
-              ].filter(Boolean).join(' · ');
-            }
-          }
+            afterLabel: item => {
+              const pt = item.raw;
+              const corrLabel = pt.weeks < 0
+                ? `  ${t('register_corr_age')}: PMA ${40 + Math.round(pt.weeks)}w`
+                : `  ${t('register_corr_age')}: ${Math.round(pt.weeks)}w`;
+              return corrLabel;
+            },
+          },
         },
         zoom: {
           zoom: {
