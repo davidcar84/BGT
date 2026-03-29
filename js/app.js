@@ -284,6 +284,13 @@ async function renderRegisterTab() {
   await renderMeasHistory(baby);
 }
 
+const MULTI_FIELDS = [
+  { id: 'meas-weight',            type: 'weight' },
+  { id: 'meas-length',            type: 'length' },
+  { id: 'meas-headCircumference', type: 'headCircumference' },
+  { id: 'meas-waistCircumference',type: 'waistCircumference' },
+];
+
 function updateAgeDisplay() {
   if (!activeBabyId) return;
   getBaby(activeBabyId).then(baby => {
@@ -291,19 +298,23 @@ function updateAgeDisplay() {
     const measDate = document.getElementById('meas-date').value;
     if (!measDate || !baby.birthDate) return;
     const { chronWeeks, corrWeeks } = calcAges(baby.birthDate, measDate, baby.gestationalAgeWeeks);
-    const ageDiv = document.getElementById('age-display');
-    document.getElementById('chron-age-val').textContent = chronWeeks;
-    document.getElementById('corr-age-val').textContent = corrWeeks;
-    ageDiv.style.display = '';
+    document.getElementById('chron-age-val').textContent = Math.round(chronWeeks);
+    document.getElementById('corr-age-val').textContent = Math.round(corrWeeks);
+    document.getElementById('age-display').style.display = '';
   });
 }
 
 function openEditMeasurement(m) {
   document.getElementById('meas-id').value = m.id;
+  document.getElementById('meas-edit-type').value = m.type;
   document.getElementById('meas-date').value = m.date;
-  document.getElementById('meas-type').value = m.type;
   document.getElementById('meas-value').value = m.value;
+  document.getElementById('meas-edit-label').textContent =
+    `${t(`type_${m.type}`)} (${t(`unit_${m.type}`)})`;
   document.getElementById('meas-edit-banner').style.display = '';
+  document.getElementById('meas-multi-fields').style.display = 'none';
+  document.getElementById('meas-edit-field').style.display = '';
+  document.getElementById('meas-submit-btn').setAttribute('data-i18n', 'register_update');
   document.getElementById('meas-submit-btn').textContent = t('register_update');
   document.getElementById('meas-error').style.display = 'none';
   updateAgeDisplay();
@@ -312,12 +323,17 @@ function openEditMeasurement(m) {
 
 function cancelEditMeas() {
   document.getElementById('meas-id').value = '';
+  document.getElementById('meas-edit-type').value = '';
   document.getElementById('meas-value').value = '';
   document.getElementById('meas-date').value = todayISO();
+  MULTI_FIELDS.forEach(f => { document.getElementById(f.id).value = ''; });
   document.getElementById('meas-edit-banner').style.display = 'none';
+  document.getElementById('meas-multi-fields').style.display = '';
+  document.getElementById('meas-edit-field').style.display = 'none';
   document.getElementById('meas-submit-btn').setAttribute('data-i18n', 'register_save');
   document.getElementById('meas-submit-btn').textContent = t('register_save');
   document.getElementById('meas-error').style.display = 'none';
+  updateAgeDisplay();
 }
 
 async function handleMeasSave(e) {
@@ -326,30 +342,50 @@ async function handleMeasSave(e) {
   const errorEl = document.getElementById('meas-error');
   errorEl.style.display = 'none';
 
-  const baby    = await getBaby(activeBabyId);
-  const editId  = document.getElementById('meas-id').value;
-  const date    = document.getElementById('meas-date').value;
-  const type    = document.getElementById('meas-type').value;
-  const value   = parseFloat(document.getElementById('meas-value').value);
-
+  const baby   = await getBaby(activeBabyId);
+  const editId = document.getElementById('meas-id').value;
+  const date   = document.getElementById('meas-date').value;
   if (!date) { showFormError(errorEl, t('error_required')); return; }
-  if (isNaN(value)) { showFormError(errorEl, t('error_invalid_number')); return; }
-
-  const validationError = validateMeasurement(type, value);
-  if (validationError) { showFormError(errorEl, validationError); return; }
 
   const { chronWeeks, corrWeeks } = calcAges(baby.birthDate, date, baby.gestationalAgeWeeks);
-  const measData = { babyId: activeBabyId, date, type, value,
-                     chronologicalAgeWeeks: chronWeeks, correctedAgeWeeks: corrWeeks };
 
   if (editId) {
-    await updateMeasurement(parseInt(editId), measData);
+    // Edit mode: update the single measurement
+    const type  = document.getElementById('meas-edit-type').value;
+    const value = parseFloat(document.getElementById('meas-value').value);
+    if (isNaN(value)) { showFormError(errorEl, t('error_invalid_number')); return; }
+    const err = validateMeasurement(type, value);
+    if (err) { showFormError(errorEl, err); return; }
+    await updateMeasurement(parseInt(editId), {
+      babyId: activeBabyId, date, type, value,
+      chronologicalAgeWeeks: chronWeeks, correctedAgeWeeks: corrWeeks,
+    });
+    cancelEditMeas();
+    showToast(t('success_saved'));
   } else {
-    await addMeasurement(measData);
+    // Add mode: save each non-empty field as a separate record
+    let savedCount = 0;
+    for (const f of MULTI_FIELDS) {
+      const raw = document.getElementById(f.id).value.trim();
+      if (!raw) continue;
+      const value = parseFloat(raw);
+      if (isNaN(value)) {
+        showFormError(errorEl, `${t(`type_${f.type}`)}: ${t('error_invalid_number')}`);
+        return;
+      }
+      const err = validateMeasurement(f.type, value);
+      if (err) { showFormError(errorEl, err); return; }
+      await addMeasurement({
+        babyId: activeBabyId, date, type: f.type, value,
+        chronologicalAgeWeeks: chronWeeks, correctedAgeWeeks: corrWeeks,
+      });
+      savedCount++;
+    }
+    if (!savedCount) { showFormError(errorEl, t('register_no_values')); return; }
+    MULTI_FIELDS.forEach(f => { document.getElementById(f.id).value = ''; });
+    showToast(t('success_saved'));
   }
 
-  cancelEditMeas();
-  showToast(t('success_saved'));
   await renderMeasHistory(baby);
 }
 
@@ -380,7 +416,7 @@ async function renderMeasHistory(baby) {
       <td>${m.date}</td>
       <td>${typeName}</td>
       <td>${m.value} ${unit}${warningHtml}</td>
-      <td>${m.correctedAgeWeeks}w</td>
+      <td>${Math.round(m.correctedAgeWeeks)}w</td>
       <td class="${zClass}">${zLabel}</td>
       <td class="meas-row-actions">
         <button class="btn-edit-meas" title="${t('btn_edit')}">✏️</button>
