@@ -49,23 +49,23 @@ function buildWhoDatasets(chartData) {
       borderColor: 'transparent', borderWidth: 0,
       pointRadius: 0, tension: 0.4, order: 12,
     },
-    // Median (closes the green zone fill)
+    // Yellow zone lower (-1/-2): SD1n fills toward SD2n
     {
-      label: '', data: series('SD1n'), fill: false,
+      label: '', data: series('SD1n'), fill: '+1',
+      backgroundColor: ZONE_COLORS.yellow,
       borderColor: 'transparent', borderWidth: 0,
       pointRadius: 0, tension: 0.4, order: 13,
     },
-    // Yellow zone lower (-2/-1)
+    // Red zone lower (-2/-3): SD2n fills toward SD3n
     {
       label: '', data: series('SD2n'), fill: '+1',
-      backgroundColor: ZONE_COLORS.yellow,
+      backgroundColor: ZONE_COLORS.red,
       borderColor: 'transparent', borderWidth: 0,
       pointRadius: 0, tension: 0.4, order: 14,
     },
-    // Red zone lower (-3/-2)
+    // SD3n closes the red zone — no fill beyond -3 SD
     {
-      label: '', data: series('SD3n'), fill: '+1',
-      backgroundColor: ZONE_COLORS.red,
+      label: '', data: series('SD3n'), fill: false,
       borderColor: 'transparent', borderWidth: 0,
       pointRadius: 0, tension: 0.4, order: 15,
     },
@@ -256,15 +256,18 @@ export function renderChart(type, sex, measurements) {
           zoom: {
             wheel: { enabled: true, speed: 0.1 },
             pinch: { enabled: true },
-            mode: 'x',
+            mode: 'xy',
             onZoom: () => showResetBtn(true),
           },
           pan: {
             enabled: true,
-            mode: 'x',
+            mode: 'xy',
             onPan: () => showResetBtn(true),
           },
-          limits: { x: { min: xAbsMin, max: xAbsMax, minRange: 4 } },
+          limits: {
+            x: { min: xAbsMin, max: xAbsMax, minRange: 4 },
+            y: { min: yMin * 0.97, max: yMax * 1.03, minRange: (yMax - yMin) * 0.1 },
+          },
         },
       },
       scales: {
