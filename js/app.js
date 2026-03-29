@@ -3,7 +3,8 @@ import {
   getBabies, getBaby, saveBaby, deleteBaby,
   getMeasurements, addMeasurement, updateMeasurement, deleteMeasurement,
   calcAges, shouldUseCorrection,
-  exportAll, importAll, clearAll
+  exportAll, importAll, clearAll,
+  migrateDecimalWeeks,
 } from './db.js';
 import { calcZScore } from './who-data.js';
 import { renderChart, destroyChart, resetZoom } from './charts.js';
@@ -94,6 +95,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('baby-modal').addEventListener('click', e => {
     if (e.target === document.getElementById('baby-modal')) closeBabyModal();
   });
+
+  // One-time migration: recalculate age weeks with decimal precision
+  const migrated = await migrateDecimalWeeks();
+  if (migrated > 0) showToast(`✓ ${migrated} ${t('migration_updated')}`);
 
   await renderBabies();
   navigateTo('babies');

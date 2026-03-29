@@ -63,6 +63,43 @@ export async function deleteMeasurement(id) {
   return db.measurements.delete(id);
 }
 
+// ─── Migration: recalculate decimal age weeks ────────────────
+// Runs once after the switch from Math.round to decimal calcAges.
+// Guards with localStorage so it never runs again.
+export async function migrateDecimalWeeks() {
+  const FLAG = 'bgt_migrated_decimal_weeks_v1';
+  if (localStorage.getItem(FLAG)) return 0;
+
+  const babies = await db.babies.toArray();
+  if (!babies.length) { localStorage.setItem(FLAG, '1'); return 0; }
+
+  const babyMap = Object.fromEntries(babies.map(b => [b.id, b]));
+  const measurements = await db.measurements.toArray();
+
+  const updates = [];
+  for (const m of measurements) {
+    const baby = babyMap[m.babyId];
+    if (!baby) continue;
+    const { chronWeeks, corrWeeks } = calcAges(baby.birthDate, m.date, baby.gestationalAgeWeeks);
+    // Only queue records that still store the old rounded integer values
+    if (m.correctedAgeWeeks !== corrWeeks || m.chronologicalAgeWeeks !== chronWeeks) {
+      updates.push({ id: m.id, correctedAgeWeeks: corrWeeks, chronologicalAgeWeeks: chronWeeks });
+    }
+  }
+
+  await db.transaction('rw', db.measurements, async () => {
+    for (const u of updates) {
+      await db.measurements.update(u.id, {
+        correctedAgeWeeks: u.correctedAgeWeeks,
+        chronologicalAgeWeeks: u.chronologicalAgeWeeks,
+      });
+    }
+  });
+
+  localStorage.setItem(FLAG, '1');
+  return updates.length;
+}
+
 // ─── Export / Import ─────────────────────────────────────────
 export async function exportAll() {
   const babies = await db.babies.toArray();
