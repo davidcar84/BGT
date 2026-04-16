@@ -135,13 +135,17 @@ export function renderChart(type, sex, measurements) {
 
   const refLabels = chartData.map(d => d.cw); // x = corrected weeks
 
-  // Baby data points (x = corrected weeks, can be negative for preterm)
-  const babyPoints = measurements.map(m => ({
-    x: m.correctedAgeWeeks,
-    y: m.value,
-    date: m.date,
-    weeks: m.correctedAgeWeeks,
-  })).sort((a, b) => a.x - b.x);
+  // Baby data points — sorted first, then growth rate calculated between consecutive points
+  const rawPoints = measurements
+    .map(m => ({ x: m.correctedAgeWeeks, y: m.value, date: m.date, weeks: m.correctedAgeWeeks }))
+    .sort((a, b) => a.x - b.x);
+
+  const babyPoints = rawPoints.map((pt, i) => {
+    if (i === 0) return { ...pt, growthRate: null };
+    const prev = rawPoints[i - 1];
+    const dw = pt.weeks - prev.weeks;
+    return { ...pt, growthRate: dw > 0 ? (pt.y - prev.y) / dw : null };
+  });
 
   const babyDataset = {
     label: t('charts_legend_baby'),
@@ -245,10 +249,19 @@ export function renderChart(type, sex, measurements) {
             },
             afterLabel: item => {
               const pt = item.raw;
-              const corrLabel = pt.weeks < 0
+              const lines = [];
+              lines.push(pt.weeks < 0
                 ? `  ${t('register_corr_age')}: PMA ${40 + Math.round(pt.weeks)}w`
-                : `  ${t('register_corr_age')}: ${Math.round(pt.weeks)}w`;
-              return corrLabel;
+                : `  ${t('register_corr_age')}: ${Math.round(pt.weeks)}w`);
+              if (pt.growthRate !== null) {
+                const sign = pt.growthRate >= 0 ? '+' : '';
+                const perWk = t('tooltip_per_week');
+                const rateStr = type === 'weight'
+                  ? `  ${sign}${(pt.growthRate * 1000).toFixed(0)} g/${perWk}`
+                  : `  ${sign}${pt.growthRate.toFixed(2)} ${t(`unit_${type}`)}/${perWk}`;
+                lines.push(rateStr);
+              }
+              return lines;
             },
           },
         },
